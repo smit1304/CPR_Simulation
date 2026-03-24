@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
@@ -10,29 +11,24 @@ public class PlayerAnimation : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
-        gameManager = FindObjectOfType<GameManager>();
+        gameManager = FindFirstObjectByType<GameManager>();
 
-        if (gameManager != null)
-        {
-            gameManager.OnCPRExecute += HandleCPRExecute;
-        }
+        gameManager.OnCPRExecute += HandleCPRExecute;
     }
 
     private void OnDestroy()
     {
-        if (gameManager != null)
-        {
-            gameManager.OnCPRExecute -= HandleCPRExecute;
-        }
+        gameManager.OnCPRExecute -= HandleCPRExecute;
     }
 
-    private void HandleCPRExecute(CPRAction action)
+    private void HandleCPRExecute((CPRAction, bool) tuple)
     {
-        if (action == CPRAction.compression)
+        Debug.Log($"PlayerAnimation received CPR action: {tuple.Item1}");
+        if (tuple.Item1 == CPRAction.compression)
         {
             animator.SetTrigger("Compression");
         }
-        else if (action == CPRAction.breath)
+        else if (tuple.Item1 == CPRAction.breath)
         {
             animator.SetTrigger("Breath");
         }

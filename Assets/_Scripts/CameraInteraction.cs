@@ -28,7 +28,6 @@ public class CameraInteraction : MonoBehaviour
                 // Adding QueryTriggerInteraction.Collide just in case your BoxCollider is marked as "Is Trigger"
                 if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide))
                 {
-                    
                     // Check if the object hit has an InteractObject component
                     InteractObject interactable = hit.collider.GetComponent<InteractObject>();
                     if (interactable != null)

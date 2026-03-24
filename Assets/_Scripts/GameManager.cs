@@ -3,9 +3,9 @@ using UnityEngine;
 
 public enum CPRAction
 {
+    none,
     compression,
     breath,
-    error
 }
 
 public class GameManager : MonoBehaviour
@@ -24,9 +24,7 @@ public class GameManager : MonoBehaviour
     private float expectedTimeLimit = 0f;
     private CPRSecuence currentTarget;
     
-    public event Action OnBreathCountChanged;
-    public event Action OnCompressionCountChanged;
-    public event Action<CPRAction> OnCPRExecute;
+    public event Action<(CPRAction, bool)> OnCPRExecute;
     public event Action OnLevelCompleted;
     // Timer for evaluating CPR pace (e.g. 100-120 compressions per minute)
     private float lastActionTime = 0f;
@@ -58,7 +56,7 @@ public class GameManager : MonoBehaviour
         if (Time.time - lastActionTime > expectedTimeLimit + TIMEOUT_MARGIN)
         {
             // Player took too long, send an error
-            OnCPRExecute?.Invoke(CPRAction.error);
+            OnCPRExecute?.Invoke((CPRAction.none, true));
             Debug.Log("Player took too long to perform the next action. Triggering error.");
             // Reset the timer so we don't spam the error event every frame
             lastActionTime = Time.time; 
@@ -85,6 +83,7 @@ public class GameManager : MonoBehaviour
     {
         float timeSinceLastAction = Time.time - lastActionTime;
         lastActionTime = Time.time;
+        Debug.Log($"Evaluating action: {phase}, Time since last action: {timeSinceLastAction:F2} seconds");
 
         if (currentLevel != null && currentTarget != null)
         {
@@ -130,8 +129,8 @@ public class GameManager : MonoBehaviour
 
             }
 
-            OnCPRExecute?.Invoke(makeMistake ? CPRAction.error : phase);
             Debug.Log($"OnCPRExecute  {phase}");
+            OnCPRExecute?.Invoke((phase, makeMistake));
 
             // Recalculate target and time limit based on the upcoming expected action
             UpdateCurrentTarget();
