@@ -13,7 +13,8 @@ public class InteractObject : MonoBehaviour
 
     public void Interact()
     {
-        switch(phase)
+        //Debug.Log($"InteractObject clicked: {gameObject.name}, phase: {phase}");
+        switch (phase)
         {
             case CPRAction.compression:
                 gameManager.Compression();
