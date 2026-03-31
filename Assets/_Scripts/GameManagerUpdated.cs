@@ -1,14 +1,14 @@
 using System;
 using UnityEngine;
 
-public enum CPRAction
+/*public enum CPRAction
 {
     none,
     compression,
     breath,
 }
 
-
+*/
 public class GameManagerUpdated : MonoBehaviour
 {
     [SerializeField] private LevelObjective currentLevel;
@@ -89,7 +89,7 @@ public class GameManagerUpdated : MonoBehaviour
 
         if (Time.time - lastActionTime > expectedTimeLimit + TIMEOUT_MARGIN)
         {
-            Debug.Log("[GameManager] Timeout — player took too long.");
+            Debug.Log("[GameManager] Timeout â€” player took too long.");
             lastActionTime = Time.time;
             RegisterMistake(CPRAction.none);
             //ResetSimulation();
@@ -166,7 +166,7 @@ public class GameManagerUpdated : MonoBehaviour
 
         if (compressionsJustFinished && phase == CPRAction.compression)
         {
-            Debug.Log("[GameManager] Compressions complete — breath phase starting.");
+            Debug.Log("[GameManager] Compressions complete â€” breath phase starting.");
             OnBreathPhaseStarted?.Invoke();
         }
 
@@ -181,7 +181,7 @@ public class GameManagerUpdated : MonoBehaviour
             // Check if we've finished all steps in the sequence
             if (currentSequenceIndex >= currentLevel.Secuence.Length)
             {
-                // One full repetition done — check if all repetitions are complete
+                // One full repetition done â€” check if all repetitions are complete
                 currentSequenceIndex = 0;
                 currentRepetition++;
 
@@ -190,7 +190,7 @@ public class GameManagerUpdated : MonoBehaviour
 
                 if (currentRepetition >= currentLevel.Repetition)
                 {
-                    Debug.Log("[GameManager] All cycles complete — Level completed!");
+                    Debug.Log("[GameManager] All cycles complete â€” Level completed!");
                     OnLevelCompleted?.Invoke();
                     ResetSimulation();
                     return;
@@ -224,7 +224,7 @@ public class GameManagerUpdated : MonoBehaviour
             }
             else
             {
-                Debug.Log("[GameManager] Tutorial failed — resetting.");
+                Debug.Log("[GameManager] Tutorial failed â€” resetting.");
                 OnTutorialFailed?.Invoke();
             }
 
@@ -257,9 +257,9 @@ public class GameManagerUpdated : MonoBehaviour
     }
 }
 
-[Serializable]
+/*[Serializable]
 public class CPRSecuence
 {
     public int breathCount = 0;
     public int compressionCount = 0;
-}
+}*/
