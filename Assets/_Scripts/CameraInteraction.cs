@@ -5,33 +5,46 @@ public class CameraInteraction : MonoBehaviour
 {
     private Camera mainCamera;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         mainCamera = Camera.main;
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
-            if (mainCamera != null)
+            if (mainCamera != null) 
             {
-                // Create a ray from the current mouse cursor position on the screen
                 Vector2 mousePosition = Mouse.current.position.ReadValue();
                 Ray ray = mainCamera.ScreenPointToRay(mousePosition);
                 
-                // Draw the ray in the Scene view to debug exactly where it goes
                 Debug.DrawRay(ray.origin, ray.direction * 10f, Color.red, 2f);
 
-                // Adding QueryTriggerInteraction.Collide just in case your BoxCollider is marked as "Is Trigger"
-                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide))
+                RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
+                
+                Debug.Log($"[CameraInteraction] RaycastAll hit {hits.Length} objects");
+                for (int i = 0; i < hits.Length; i++)
                 {
-                    // Check if the object hit has an InteractObject component
-                    InteractObject interactable = hit.collider.GetComponent<InteractObject>();
+                    Debug.Log($"  Hit {i}: {hits[i].collider.gameObject.name} at distance {hits[i].distance}");
+                }
+                
+                if (hits.Length > 0)
+                {
+                    // Get the closest hit
+                    RaycastHit closestHit = hits[0];
+                    for (int i = 1; i < hits.Length; i++)
+                    {
+                        if (hits[i].distance < closestHit.distance)
+                            closestHit = hits[i];
+                    }
+
+                    Debug.Log($"[CameraInteraction] Closest hit: {closestHit.collider.gameObject.name}");
+                    
+                    InteractObject interactable = closestHit.collider.GetComponent<InteractObject>();
                     if (interactable != null)
                     {
+                        Debug.Log($"[CameraInteraction] Calling Interact() on {closestHit.collider.gameObject.name}");
                         interactable.Interact();
                     }
                 }                
