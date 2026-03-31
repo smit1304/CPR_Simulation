@@ -2,7 +2,9 @@ using UnityEngine;
 
 public class MainMenuController : MonoBehaviour
 {
+
     [SerializeField] private GameObject startMenuUI;
+    [SerializeField] private GameFlowManager gameFlowManager;
 
     private void Start()
     {
@@ -10,6 +12,9 @@ public class MainMenuController : MonoBehaviour
 
         if (startMenuUI != null)
             startMenuUI.SetActive(true);
+
+        if (gameFlowManager == null)
+            gameFlowManager = FindFirstObjectByType<GameFlowManager>();
 
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
@@ -23,7 +28,11 @@ public class MainMenuController : MonoBehaviour
         Time.timeScale = 1f;
 
         Cursor.visible = true;
-        //Cursor.lockState = CursorLockMode.Locked;
+
+        if (gameFlowManager != null)
+            gameFlowManager.StartGame();
+        else
+            Debug.LogError("[MainMenuController] GameFlowManager not found. Can't start game.");
     }
 
     public void QuitGame()
@@ -32,3 +41,4 @@ public class MainMenuController : MonoBehaviour
         Debug.Log("Quit Game");
     }
 }
+
