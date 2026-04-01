@@ -1,14 +1,14 @@
 using System;
 using UnityEngine;
 
-/*public enum CPRAction
+public enum CPRAction
 {
     none,
     compression,
     breath,
 }
 
-*/
+
 public class GameManagerUpdated : MonoBehaviour
 {
     [SerializeField] private LevelObjective currentLevel;
@@ -257,9 +257,9 @@ public class GameManagerUpdated : MonoBehaviour
     }
 }
 
-/*[Serializable]
+[Serializable]
 public class CPRSecuence
 {
     public int breathCount = 0;
     public int compressionCount = 0;
-}*/
+}
