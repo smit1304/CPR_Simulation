@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 
 public class CameraInteraction : MonoBehaviour
 {
+    [SerializeField] private LayerMask interactableLayer;
     private Camera mainCamera;
 
     void Start()
@@ -14,40 +15,29 @@ public class CameraInteraction : MonoBehaviour
     {
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
-            if (mainCamera != null) 
+            if (mainCamera != null)
             {
+                // Create a ray from the current mouse cursor position on the screen
                 Vector2 mousePosition = Mouse.current.position.ReadValue();
                 Ray ray = mainCamera.ScreenPointToRay(mousePosition);
-                
+
+#if UNITY_EDITOR
+                // Draw the ray in the Scene view to debug exactly where it goes
                 Debug.DrawRay(ray.origin, ray.direction * 10f, Color.red, 2f);
+#endif
 
-                RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
-                
-                Debug.Log($"[CameraInteraction] RaycastAll hit {hits.Length} objects");
-                for (int i = 0; i < hits.Length; i++)
+                // Adding QueryTriggerInteraction.Collide just in case your BoxCollider is marked as "Is Trigger"
+                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
                 {
-                    Debug.Log($"  Hit {i}: {hits[i].collider.gameObject.name} at distance {hits[i].distance}");
-                }
-                
-                if (hits.Length > 0)
-                {
-                    // Get the closest hit
-                    RaycastHit closestHit = hits[0];
-                    for (int i = 1; i < hits.Length; i++)
-                    {
-                        if (hits[i].distance < closestHit.distance)
-                            closestHit = hits[i];
-                    }
+                    Debug.Log("Interact with");
 
-                    Debug.Log($"[CameraInteraction] Closest hit: {closestHit.collider.gameObject.name}");
-                    
-                    InteractObject interactable = closestHit.collider.GetComponent<InteractObject>();
+                    // Check if the object hit has an InteractObject component
+                    InteractObject interactable = hit.collider.GetComponentInChildren<InteractObject>(true);
                     if (interactable != null)
                     {
-                        Debug.Log($"[CameraInteraction] Calling Interact() on {closestHit.collider.gameObject.name}");
                         interactable.Interact();
                     }
-                }                
+                }
             }
         }
     }

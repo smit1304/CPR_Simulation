@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Breath_Tutorial
   m_EditorClassIdentifier: Assembly-CSharp::LevelObjective
   secuence:
-  - breathCount: 5
+  - breathCount: 2
     compressionCount: 0
   repetition: 5
+  waitTimeBetweenCycles: 5

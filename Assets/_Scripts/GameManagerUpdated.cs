@@ -19,14 +19,14 @@ public class GameManagerUpdated : MonoBehaviour
 
     private const float BREATH_TIME = 2f;
     private const float COMPRESSION_TIME = 0.5f;
-    private const float TIMEOUT_MARGIN = 1.0f;
-    private const float TIMING_MARGIN = 0.2f;
+    private const float TIMEOUT_MARGIN = 0.20f;
+    private const float TIMING_MARGIN = 0.15f;
 
     private int breathCount = 0;
     private int compressionCount = 0;
     private int currentSequenceIndex = 0;
     private int currentRepetition = 0;
-    private float time = 0f;
+    private float _time = 0f;
     private float expectedTimeLimit = 0f;
     private int mistakeCount = 0;
     private bool isFullCPR = false;
@@ -42,7 +42,14 @@ public class GameManagerUpdated : MonoBehaviour
     public int CurrentRepetition => currentRepetition;
     public int TotalRepetitions => currentLevel?.Repetition ?? 0;
 
+    public float time => _time;
+
+    public float remainingTime => Mathf.Max(0f, expectedTimeLimit - (_time - lastActionTime));
+    public float waiTimeBetweenCycles => waitTimeBetweenCycles;
+    public float expectedTime => expectedTimeLimit;
+
     public event Action<(CPRAction, bool)> OnCPRExecute;
+    public event Action<bool> OnWaitTimeActivated;
     public event Action OnLevelCompleted;
     public event Action OnTutorialFailed;
     public event Action OnGameOver;
@@ -54,6 +61,7 @@ public class GameManagerUpdated : MonoBehaviour
     public event Action<int, int> OnCycleCompleted; // current, total
 
     private float lastActionTime = 0f;
+    private float waitTimeBetweenCycles = 5.0f;
 
     private void Start()
     {
@@ -74,9 +82,10 @@ public class GameManagerUpdated : MonoBehaviour
         compressionCount = 0;
         currentSequenceIndex = 0;
         currentRepetition = 0;
-        time = 0f;
+        Debug.Log("[GameManager] Simulation reset.");
+        _time = 0f;
         mistakeCount = 0;
-        lastActionTime = Time.time;
+        lastActionTime = _time;
         UpdateCurrentTarget();
         UpdateExpectedTimeLimit();
     }
@@ -84,13 +93,23 @@ public class GameManagerUpdated : MonoBehaviour
     private void Update()
     {
         if (currentLevel == null || currentTarget == null) return;
+        if(waitTimeBetweenCycles > 0f)
+        {
+            waitTimeBetweenCycles -= Time.deltaTime;
+            if(waitTimeBetweenCycles <= 0f)
+            {
+                Debug.Log("[GameManager] Wait time over — next cycle starting.");
+                OnWaitTimeActivated?.Invoke(true);
+                lastActionTime = time;
+            }
+            return;
+        }
+        _time += Time.deltaTime;
 
-        time += Time.deltaTime;
-
-        if (Time.time - lastActionTime > expectedTimeLimit + TIMEOUT_MARGIN)
+        if (_time - lastActionTime > expectedTimeLimit + TIMEOUT_MARGIN)
         {
             Debug.Log("[GameManager] Timeout — player took too long.");
-            lastActionTime = Time.time;
+            lastActionTime = time;
             RegisterMistake(CPRAction.none);
             //ResetSimulation();
         }
@@ -112,8 +131,9 @@ public class GameManagerUpdated : MonoBehaviour
 
     private void EvaluateAction(CPRAction phase)
     {
-        float timeSinceLastAction = Time.time - lastActionTime;
-        lastActionTime = Time.time;
+        float timeSinceLastAction = _time - lastActionTime;
+        float maxTime = expectedTimeLimit + TIMEOUT_MARGIN;
+        lastActionTime = _time;
 
         if (currentLevel == null || currentTarget == null) return;
 
@@ -138,7 +158,7 @@ public class GameManagerUpdated : MonoBehaviour
         }
         else if (stillNeedsBreaths)
         {
-            bool tooFast = timeSinceLastAction < COMPRESSION_TIME - TIMING_MARGIN;
+            bool tooFast = timeSinceLastAction < BREATH_TIME - TIMING_MARGIN;
             if (tooFast)
             {
                 makeMistake = true;
@@ -177,6 +197,7 @@ public class GameManagerUpdated : MonoBehaviour
         if (stepComplete)
         {
             currentSequenceIndex++;
+            waitTimeBetweenCycles = currentLevel.waitTime;
 
             // Check if we've finished all steps in the sequence
             if (currentSequenceIndex >= currentLevel.Secuence.Length)
@@ -200,6 +221,7 @@ public class GameManagerUpdated : MonoBehaviour
             // Reset counts for next step or next repetition
             breathCount = 0;
             compressionCount = 0;
+            OnWaitTimeActivated?.Invoke(true);
         }
 
         UpdateCurrentTarget();

@@ -40,11 +40,6 @@ public class CPRPromptUIController : MonoBehaviour
     [SerializeField] private TMP_Text txtGameOverMessage;
     [SerializeField] private Button btnRetry;
 
-    [Header("Timing")]
-    [SerializeField] private float compressionTime = 0.5f;
-    [SerializeField] private float breathTime = 2f;
-
-    private float currentTimeLeft = 0f;
     private CPRAction currentPrompt = CPRAction.compression;
     private GamePhase currentPhase = GamePhase.MainMenu;
 
@@ -64,7 +59,9 @@ public class CPRPromptUIController : MonoBehaviour
         }
 
         if (gameFlowManager != null)
+        { 
             gameFlowManager.OnPhaseChanged += HandlePhaseChanged;
+        }
 
         // Wire the Continue button to advance the flow
         if (btnContinue != null)
@@ -72,6 +69,7 @@ public class CPRPromptUIController : MonoBehaviour
 
         // In Start() — add these lines
         gameManager.OnGameOver += HandleGameOver;
+        gameManager.OnTutorialFailed += HandleGameOver;
 
         if (btnRetry != null)
             btnRetry.onClick.AddListener(OnRetryClicked);
@@ -80,6 +78,9 @@ public class CPRPromptUIController : MonoBehaviour
         gameManager.OnCycleCompleted += HandleCycleCompleted;
         
         HideAllUI();
+
+        HandlePhaseChanged(gameFlowManager.CurrentPhase);
+
     }
 
     private void OnDestroy()
@@ -97,6 +98,7 @@ public class CPRPromptUIController : MonoBehaviour
 
         // In OnDestroy() — add these lines
         gameManager.OnGameOver -= HandleGameOver;
+        gameManager.OnTutorialFailed -= HandleGameOver;
 
         gameManager.OnBreathPhaseStarted -= HandleBreathPhaseStarted;
         gameManager.OnCycleCompleted -= HandleCycleCompleted;
@@ -107,36 +109,43 @@ public class CPRPromptUIController : MonoBehaviour
 
     private void Update()
     {
-        if (currentTimeLeft > 0f)
-            currentTimeLeft -= Time.deltaTime;
-
         if (txtTimer != null)
-            txtTimer.text = $"Time: {Mathf.Max(0f, currentTimeLeft):F1}";
+        {
+            if (gameManager.waiTimeBetweenCycles > 0)
+            {
+                txtTimer.text = gameManager.waiTimeBetweenCycles > 3 ? "Prepare to start" : $"Game will start in: {gameManager.waiTimeBetweenCycles:F0}";
+            }
+            else 
+            {
+                txtTimer.text =$"Time: {gameManager.remainingTime:F1}";
+            }
+        }
     }
 
     // ─── Phase Changed ───────────────────────────────────────────────
     private void HandlePhaseChanged(GamePhase phase)
     {
+        gameObject.SetActive(phase != GamePhase.MainMenu);
         currentPhase = phase;
         HideAllUI();
 
         switch (phase)
         {
             case GamePhase.TutorialBreath:
-                ShowPhaseTransitionPanel("Level 1 — Breath Tutorial", "Click on the patient's head to give a breath");
+                ShowPhaseTransitionPanel("Level 1", "Rescute Breath");
                 SetInstruction("Give a breath by clicking on the patient's head.");
                 ShowBreathPrompt();
                 break;
 
             case GamePhase.TutorialCompression:
-                ShowPhaseTransitionPanel("Level 2 — Compression Tutorial", "Click on the patient's chest to compress");
+                ShowPhaseTransitionPanel("Level 2", "Compression");
                 SetInstruction("Compress the chest by clicking on it.");
                 ShowCompressionPrompt();
                 break;
 
             case GamePhase.FullCPR:
-                ShowPhaseTransitionPanel("Level 3 — Save the Patient!", "30 compressions → 2 breaths. Keep the rhythm!");
-                SetInstruction("Start with chest compressions.");
+                ShowPhaseTransitionPanel("Level 3", "Save the Patient!");
+                SetInstruction("30 compressions → 2 breaths. Keep the rhythm! Start with chest compressions.");
                 ShowCompressionPrompt();
                 break;
 
@@ -153,7 +162,6 @@ public class CPRPromptUIController : MonoBehaviour
         if (result.action == CPRAction.none && result.makeMistake)
         {
             ShowMistakeFeedback("Too slow! Keep the rhythm.");
-            ResetCurrentPromptTimer();
             return;
         }
 
@@ -169,7 +177,6 @@ public class CPRPromptUIController : MonoBehaviour
         if (currentPhase == GamePhase.TutorialBreath || currentPhase == GamePhase.TutorialCompression)
         {
             // Stay on same prompt in tutorials, just reset the timer
-            ResetCurrentPromptTimer();
         }
         else if (currentPhase == GamePhase.FullCPR)
         {
@@ -201,7 +208,8 @@ public class CPRPromptUIController : MonoBehaviour
         if (current < total)
         {
             // More cycles remaining
-            SetInstruction($"Cycle {current}/{total} complete! Keep going — start compressions again.");
+            string text = currentPrompt == CPRAction.compression ? "compressions" : "breath";
+            SetInstruction($"Cycle {current}/{total} complete! Keep going — start {text} again.");
             UpdateProgressText();
         }
         // If current == total, OnLevelCompleted fires immediately after so no need to handle here
@@ -224,7 +232,6 @@ public class CPRPromptUIController : MonoBehaviour
         currentPrompt = CPRAction.compression;
         if (chestPromptIndicator != null) chestPromptIndicator.SetActive(true);
         if (headPromptIndicator != null) headPromptIndicator.SetActive(false);
-        currentTimeLeft = compressionTime;
     }
 
     private void ShowBreathPrompt()
@@ -232,13 +239,8 @@ public class CPRPromptUIController : MonoBehaviour
         currentPrompt = CPRAction.breath;
         if (chestPromptIndicator != null) chestPromptIndicator.SetActive(false);
         if (headPromptIndicator != null) headPromptIndicator.SetActive(true);
-        currentTimeLeft = breathTime;
     }
 
-    private void ResetCurrentPromptTimer()
-    {
-        currentTimeLeft = (currentPrompt == CPRAction.compression) ? compressionTime : breathTime;
-    }
 
     // ─── Mistake Feedback ────────────────────────────────────────────
     private string GetMistakeMessage(CPRAction wrongAction)
@@ -351,5 +353,6 @@ public class CPRPromptUIController : MonoBehaviour
         if (panelPhaseTransition != null) panelPhaseTransition.SetActive(false);
         if (txtProgress != null) txtProgress.text = "";
         if (txtInstruction != null) txtInstruction.text = "";
+        if (panelGameOver != null) panelGameOver.SetActive(false);
     }
 }

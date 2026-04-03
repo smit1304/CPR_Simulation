@@ -46,7 +46,13 @@ public class GameFlowManager : MonoBehaviour
         {
             gameManager.OnTutorialFailed += HandleTutorialFailed;
             gameManager.OnGameOver += HandleGameOver;
+            gameManager.OnLevelCompleted += HandleLevelComplete;
         }
+    }
+
+    private void HandleLevelComplete()
+    {
+        Time.timeScale = 0f; // Pause the game until NextLevel is pressed
     }
 
     private void OnDestroy()
@@ -90,6 +96,7 @@ public class GameFlowManager : MonoBehaviour
                 break;
             case GamePhase.FullCPR:
                 SetPhase(GamePhase.MainMenu);
+                Time.timeScale = 0f;
                 break;
         }
     }
@@ -99,6 +106,7 @@ public class GameFlowManager : MonoBehaviour
     {
         Debug.Log($"[GameFlowManager] Tutorial failed — restarting phase: {currentPhase}");
         SetPhase(currentPhase); // Re-set the same phase — reloads level objective and resets everything
+        Time.timeScale = 0f;
     }
 
     // Game Over — UI handles showing the panel, we just pause
@@ -111,7 +119,7 @@ public class GameFlowManager : MonoBehaviour
     public void RetryFullCPR()
     {
         Time.timeScale = 1f;
-        SetPhase(GamePhase.FullCPR);
+        SetPhase(currentPhase);
     }
 
     private void SetPhase(GamePhase newPhase)
@@ -120,6 +128,7 @@ public class GameFlowManager : MonoBehaviour
         Debug.Log($"[GameFlowManager] Phase changed to: {newPhase}");
         ApplyPhaseToGameManager(newPhase);
         OnPhaseChanged?.Invoke(newPhase);
+        Time.timeScale = 1f;
     }
 
     private void ApplyPhaseToGameManager(GamePhase phase)

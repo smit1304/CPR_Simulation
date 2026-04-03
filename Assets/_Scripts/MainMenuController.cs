@@ -1,8 +1,9 @@
+using System;
 using UnityEngine;
 
 public class MainMenuController : MonoBehaviour
 {
-
+    [SerializeField] private GameObject mainMenuUI;
     [SerializeField] private GameObject startMenuUI;
     [SerializeField] private GameFlowManager gameFlowManager;
 
@@ -18,6 +19,12 @@ public class MainMenuController : MonoBehaviour
 
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
+        gameFlowManager.OnPhaseChanged += HandlePhaseChanged;
+    }
+
+    private void HandlePhaseChanged(GamePhase phase)
+    {
+        mainMenuUI.SetActive(phase == GamePhase.MainMenu);
     }
 
     public void StartGame()

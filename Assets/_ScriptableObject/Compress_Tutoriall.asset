@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelObjective
   secuence:
   - breathCount: 0
-    compressionCount: 10
-  repetition: 5
+    compressionCount: 30
+  repetition: 3
+  waitTimeBetweenCycles: 6
