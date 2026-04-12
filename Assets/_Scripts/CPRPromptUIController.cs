@@ -21,6 +21,7 @@ public class CPRPromptUIController : MonoBehaviour
 
     [Header("Mistake Feedback")]
     [SerializeField] private GameObject panelMistake;
+    [SerializeField] private TMP_Text txtMistakesCont;
     [SerializeField] private TMP_Text txtMistakeFeedback;
     [SerializeField] private float mistakeFeedbackDuration = 1.5f;
 
@@ -56,6 +57,13 @@ public class CPRPromptUIController : MonoBehaviour
         {
             gameManager.OnCPRExecute += HandleCPRExecute;
             gameManager.OnLevelCompleted += HandleLevelCompleted;
+
+            // In Start() — add these lines
+            gameManager.OnGameOver += HandleGameOver;
+            gameManager.OnTutorialFailed += HandleGameOver;
+            gameManager.OnBreathPhaseStarted += HandleBreathPhaseStarted;
+            gameManager.OnCycleCompleted += HandleCycleCompleted;
+            gameManager.OnWaitTimeActivated += HandleWaitTimeActivated;
         }
 
         if (gameFlowManager != null)
@@ -67,15 +75,11 @@ public class CPRPromptUIController : MonoBehaviour
         if (btnContinue != null)
             btnContinue.onClick.AddListener(OnContinueClicked);
 
-        // In Start() — add these lines
-        gameManager.OnGameOver += HandleGameOver;
-        gameManager.OnTutorialFailed += HandleGameOver;
 
         if (btnRetry != null)
             btnRetry.onClick.AddListener(OnRetryClicked);
         
-        gameManager.OnBreathPhaseStarted += HandleBreathPhaseStarted;
-        gameManager.OnCycleCompleted += HandleCycleCompleted;
+       
         
         HideAllUI();
 
@@ -89,6 +93,12 @@ public class CPRPromptUIController : MonoBehaviour
         {
             gameManager.OnCPRExecute -= HandleCPRExecute;
             gameManager.OnLevelCompleted -= HandleLevelCompleted;
+            gameManager.OnWaitTimeActivated -= HandleWaitTimeActivated;
+            gameManager.OnGameOver -= HandleGameOver;
+            gameManager.OnTutorialFailed -= HandleGameOver;
+            gameManager.OnBreathPhaseStarted -= HandleBreathPhaseStarted;
+            gameManager.OnCycleCompleted -= HandleCycleCompleted;
+
         }
         if (gameFlowManager != null)
             gameFlowManager.OnPhaseChanged -= HandlePhaseChanged;
@@ -96,13 +106,7 @@ public class CPRPromptUIController : MonoBehaviour
         if (btnContinue != null)
             btnContinue.onClick.RemoveListener(OnContinueClicked);
 
-        // In OnDestroy() — add these lines
-        gameManager.OnGameOver -= HandleGameOver;
-        gameManager.OnTutorialFailed -= HandleGameOver;
-
-        gameManager.OnBreathPhaseStarted -= HandleBreathPhaseStarted;
-        gameManager.OnCycleCompleted -= HandleCycleCompleted;
-
+       
         if (btnRetry != null)
             btnRetry.onClick.RemoveListener(OnRetryClicked);
     }
@@ -121,6 +125,14 @@ public class CPRPromptUIController : MonoBehaviour
             }
         }
     }
+    // ─── Wait Time Handler ──────────────────────────────────────────────
+    private void HandleWaitTimeActivated(bool waitStarted)
+    {
+        if (!waitStarted) return;
+
+        // Update progress after wait time ends
+        UpdateProgressText();
+    }
 
     // ─── Phase Changed ───────────────────────────────────────────────
     private void HandlePhaseChanged(GamePhase phase)
@@ -135,18 +147,21 @@ public class CPRPromptUIController : MonoBehaviour
                 ShowPhaseTransitionPanel("Level 1", "Rescute Breath");
                 SetInstruction("Give a breath by clicking on the patient's head.");
                 ShowBreathPrompt();
+                UpdateProgressText();
                 break;
 
             case GamePhase.TutorialCompression:
                 ShowPhaseTransitionPanel("Level 2", "Compression");
                 SetInstruction("Compress the chest by clicking on it.");
                 ShowCompressionPrompt();
+                UpdateProgressText();
                 break;
 
             case GamePhase.FullCPR:
                 ShowPhaseTransitionPanel("Level 3", "Save the Patient!");
                 SetInstruction("30 compressions → 2 breaths. Keep the rhythm! Start with chest compressions.");
                 ShowCompressionPrompt();
+                UpdateProgressText();
                 break;
 
             case GamePhase.MainMenu:
@@ -201,6 +216,7 @@ public class CPRPromptUIController : MonoBehaviour
         // Switch the prompt to breaths mid-cycle
         SetInstruction("30 compressions done! Now give 2 breaths.");
         ShowBreathPrompt();
+        UpdateProgressText();
     }
 
     private void HandleCycleCompleted(int current, int total)
@@ -272,6 +288,14 @@ public class CPRPromptUIController : MonoBehaviour
     private IEnumerator MistakeFeedbackRoutine(string message)
     {
         if (txtMistakeFeedback != null) txtMistakeFeedback.text = message;
+        /*if (mistakeFeedbackCoroutine != null)        {
+            // Update mistake count display
+            
+        }*/
+
+        if (txtMistakesCont != null)
+            txtMistakesCont.text = $"Mistakes: {gameManager.MistakeCount} / {(currentPhase == GamePhase.FullCPR ? gameManager.FullCPRMistakeLimit : gameManager.TutorialMistakeLimit)}";
+
         if (panelMistake != null) panelMistake.SetActive(true);
         yield return new WaitForSeconds(mistakeFeedbackDuration);
         if (panelMistake != null) panelMistake.SetActive(false);

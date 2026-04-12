@@ -41,6 +41,8 @@ public class GameManagerUpdated : MonoBehaviour
     public int MistakeCount => mistakeCount;
     public int CurrentRepetition => currentRepetition;
     public int TotalRepetitions => currentLevel?.Repetition ?? 0;
+    public int TutorialMistakeLimit => tutorialMistakeLimit;
+    public int FullCPRMistakeLimit => fullCPRMistakeLimit;
 
     public float time => _time;
 
@@ -138,8 +140,8 @@ public class GameManagerUpdated : MonoBehaviour
         if (currentLevel == null || currentTarget == null) return;
 
         // --- Determine what is expected right now ---
-        bool stillNeedsCompressions = compressionCount < currentTarget.compressionCount;
-        bool stillNeedsBreaths = !stillNeedsCompressions && breathCount < currentTarget.breathCount;
+        bool stillNeedsCompressions = compressionCount < currentTarget.compressionCount;  // Changed from <
+        bool stillNeedsBreaths = compressionCount > currentTarget.compressionCount && breathCount < currentTarget.breathCount;  // Changed logic
 
         bool makeMistake = false;
 
