@@ -19,6 +19,8 @@ public class GameFlowManager : MonoBehaviour
     [SerializeField] private LevelObjective tutorialCompressionObjective;
     [SerializeField] private LevelObjective fullCPRObjective;
 
+    [SerializeField] private GameObject[] scenarios;
+
     [Header("References")]
     [SerializeField] private GameManagerUpdated gameManager;
 
@@ -48,6 +50,7 @@ public class GameFlowManager : MonoBehaviour
             gameManager.OnGameOver += HandleGameOver;
             gameManager.OnLevelCompleted += HandleLevelComplete;
         }
+        SelectScenario(0);
     }
 
     private void HandleLevelComplete()
@@ -87,17 +90,30 @@ public class GameFlowManager : MonoBehaviour
         {
             case GamePhase.MainMenu:
                 SetPhase(GamePhase.TutorialBreath);
+                SelectScenario(0);
                 break;
             case GamePhase.TutorialBreath:
                 SetPhase(GamePhase.TutorialCompression);
+                SelectScenario(1);
                 break;
             case GamePhase.TutorialCompression:
                 SetPhase(GamePhase.FullCPR);
+                SelectScenario(2);
                 break;
             case GamePhase.FullCPR:
                 SetPhase(GamePhase.MainMenu);
+                SelectScenario(0);
                 Time.timeScale = 0f;
                 break;
+        }
+    }
+
+    private void SelectScenario(int idx)
+    {
+        Debug.Log($"[GameFlowManager] Selecting scenario index: {idx}");
+        for (int i = 0; i < scenarios.Length; i++)
+        {
+            scenarios[i].SetActive(i == idx);
         }
     }
 

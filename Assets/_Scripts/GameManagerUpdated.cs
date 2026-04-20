@@ -120,14 +120,16 @@ public class GameManagerUpdated : MonoBehaviour
     public void Compression()
     {
         if (currentLevel == null || currentTarget == null) return;
-        compressionCount++;
+        if(waitTimeBetweenCycles > 0f) return; // Prevent input during wait time
+        
         EvaluateAction(CPRAction.compression);
     }
 
     public void Breath()
     {
         if (currentLevel == null || currentTarget == null) return;
-        breathCount++;
+        if(waitTimeBetweenCycles > 0f) return; // Prevent input during wait time
+        
         EvaluateAction(CPRAction.breath);
     }
 
@@ -139,9 +141,9 @@ public class GameManagerUpdated : MonoBehaviour
 
         if (currentLevel == null || currentTarget == null) return;
 
-        // --- Determine what is expected right now ---
-        bool stillNeedsCompressions = compressionCount < currentTarget.compressionCount;  // Changed from <
-        bool stillNeedsBreaths = compressionCount > currentTarget.compressionCount && breathCount < currentTarget.breathCount;  // Changed logic
+        // --- Determine what is expected right now (BEFORE incrementing) ---
+        bool stillNeedsCompressions = compressionCount < currentTarget.compressionCount; 
+        bool stillNeedsBreaths = compressionCount >= currentTarget.compressionCount && breathCount < currentTarget.breathCount; 
 
         bool makeMistake = false;
 
@@ -164,7 +166,7 @@ public class GameManagerUpdated : MonoBehaviour
             if (tooFast)
             {
                 makeMistake = true;
-                Debug.Log($"[GameManager] Mistake: compression too fast ({timeSinceLastAction:F2}s).");
+                Debug.Log($"[GameManager] Mistake: breath too fast ({timeSinceLastAction:F2}s).");
             }else if (phase != CPRAction.breath)
             {
                 makeMistake = true;
@@ -177,6 +179,12 @@ public class GameManagerUpdated : MonoBehaviour
             RegisterMistake(phase);
             return;
         }
+
+        // --- Action is correct! Now we increment the count ---
+        if (phase == CPRAction.compression)
+            compressionCount++;
+        else if (phase == CPRAction.breath)
+            breathCount++;
 
         Debug.Log($"[GameManager] Correct -> phase: {phase}, C: {compressionCount}/{currentTarget.compressionCount}, B: {breathCount}/{currentTarget.breathCount}");
         OnCPRExecute?.Invoke((phase, false));
@@ -236,6 +244,9 @@ public class GameManagerUpdated : MonoBehaviour
         Debug.Log($"[GameManager] Mistake #{mistakeCount}");
 
         OnCPRExecute?.Invoke((phase, true));
+
+        // Note: We completely removed the count subtractions (`compressionCount--`) 
+        // because the count is NEVER properly incremented if it is a mistake!
 
         int limit = isFullCPR ? fullCPRMistakeLimit : tutorialMistakeLimit;
 

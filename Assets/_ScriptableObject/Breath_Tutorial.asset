@@ -15,5 +15,5 @@ MonoBehaviour:
   secuence:
   - breathCount: 2
     compressionCount: 0
-  repetition: 5
+  repetition: 0
   waitTimeBetweenCycles: 5
