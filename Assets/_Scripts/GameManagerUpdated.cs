@@ -17,6 +17,11 @@ public class GameManagerUpdated : MonoBehaviour
     [SerializeField] private int tutorialMistakeLimit = 3;
     [SerializeField] private int fullCPRMistakeLimit = 5;
 
+    [Header("Audio Feedback")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip correctSound;
+    [SerializeField] private AudioClip mistakeSound;
+
     private const float BREATH_TIME = 2f;
     private const float COMPRESSION_TIME = 0.5f;
     private const float TIMEOUT_MARGIN = 0.20f;
@@ -67,6 +72,11 @@ public class GameManagerUpdated : MonoBehaviour
 
     private void Start()
     {
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+
         ResetSimulation();
     }
 
@@ -187,6 +197,7 @@ public class GameManagerUpdated : MonoBehaviour
             breathCount++;
 
         Debug.Log($"[GameManager] Correct -> phase: {phase}, C: {compressionCount}/{currentTarget.compressionCount}, B: {breathCount}/{currentTarget.breathCount}");
+        PlaySound(correctSound);
         OnCPRExecute?.Invoke((phase, false));
 
         // --- Check if compressions just finished, breaths should start ---
@@ -243,6 +254,7 @@ public class GameManagerUpdated : MonoBehaviour
         mistakeCount++;
         Debug.Log($"[GameManager] Mistake #{mistakeCount}");
 
+        PlaySound(mistakeSound);
         OnCPRExecute?.Invoke((phase, true));
 
         // Note: We completely removed the count subtractions (`compressionCount--`) 
@@ -288,6 +300,14 @@ public class GameManagerUpdated : MonoBehaviour
             expectedTimeLimit = (compressionCount < currentTarget.compressionCount)
                 ? COMPRESSION_TIME
                 : BREATH_TIME;
+        }
+    }
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
         }
     }
 }
