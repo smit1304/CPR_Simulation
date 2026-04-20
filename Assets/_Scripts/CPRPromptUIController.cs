@@ -144,22 +144,22 @@ public class CPRPromptUIController : MonoBehaviour
         switch (phase)
         {
             case GamePhase.TutorialBreath:
-                ShowPhaseTransitionPanel("Level 1", "Rescute Breath");
-                SetInstruction("Give a breath by clicking on the patient's head.");
+                ShowPhaseTransitionPanel("Level 1: Rescue Breaths", "Instruction:\nClick on the head to give a breath. Breaths need to be provided every 2 seconds. Wait until the circular bar changes to green.");
+                SetInstruction("Wait until the circular bar changes to green.");
                 ShowBreathPrompt();
                 UpdateProgressText();
                 break;
 
             case GamePhase.TutorialCompression:
-                ShowPhaseTransitionPanel("Level 2", "Compression");
-                SetInstruction("Compress the chest by clicking on it.");
+                ShowPhaseTransitionPanel("Level 2: Chest Compressions", "Instruction:\nClick on the chest to perform compressions. Push fast, every 0.5 seconds (100-120 BPM).");
+                SetInstruction("Push fast, every 0.5 seconds.");
                 ShowCompressionPrompt();
                 UpdateProgressText();
                 break;
 
             case GamePhase.FullCPR:
-                ShowPhaseTransitionPanel("Level 3", "Save the Patient!");
-                SetInstruction("30 compressions → 2 breaths. Keep the rhythm! Start with chest compressions.");
+                ShowPhaseTransitionPanel("Level 3: Save the Patient!", "Instruction:\nLet's practice alternating both: 30 compressions followed by 2 breaths. Keep a steady rhythm!");
+                SetInstruction("30 compressions → 2 breaths. Keep the rhythm!");
                 ShowCompressionPrompt();
                 UpdateProgressText();
                 break;
@@ -328,11 +328,18 @@ public class CPRPromptUIController : MonoBehaviour
 
     private IEnumerator PhaseTransitionRoutine(string title, string subtitle)
     {
+        Time.timeScale = 0f; // Pause the game so the timer doesn't run during instructions
+        
         if (txtPhaseTitle != null) txtPhaseTitle.text = title;
         if (txtPhaseSubtitle != null) txtPhaseSubtitle.text = subtitle;
         if (panelPhaseTransition != null) panelPhaseTransition.SetActive(true);
-        yield return new WaitForSeconds(transitionDisplayDuration);
+        
+        // Give the player enough time to read the instructions (5 seconds in unscaled time)
+        yield return new WaitForSecondsRealtime(5.0f);
+        
         if (panelPhaseTransition != null) panelPhaseTransition.SetActive(false);
+        
+        Time.timeScale = 1f; // Unpause the game to start the level
     }
 
     // ─── Completion Panel ────────────────────────────────────────────

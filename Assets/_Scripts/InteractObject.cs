@@ -12,9 +12,13 @@ public class InteractObject : MonoBehaviour
 
     [SerializeField] private GameObject graphicIndicator;
     [SerializeField] private Image feedbackImage;
+    [SerializeField] private Image middleImage;
     [SerializeField] private TextMeshProUGUI counter;
     [SerializeField] private TextMeshProUGUI total;
     [SerializeField] private GameObject TotalContainer;
+    [SerializeField] private Color correctColor;
+    [SerializeField] private Color incorrectColor;
+    [SerializeField] private Color neutralColor;
 
 
     private void Start()
@@ -36,19 +40,33 @@ public class InteractObject : MonoBehaviour
     {
         if (!isInteractable)
             return;
-        feedbackImage.fillAmount = !IsSamePhase() ? 1.0f  : gameManager.remainingTime / gameManager.expectedTime;
+        
+        float progress = gameManager.remainingTime / gameManager.expectedTime;
+        feedbackImage.fillAmount = !IsSamePhase() ? 1.0f : progress;
         graphicIndicator.SetActive(isInteractable);
+        
         if (!IsSamePhase())
         {
             counter.text = "";
             TotalContainer.SetActive(false);
+            if (middleImage != null) middleImage.color = neutralColor;
             return;
         }
         else 
         {
             counter.text = phase == CPRAction.compression ? gameManager.CompressionCount.ToString() : gameManager.BreathCount.ToString();
             total.text = phase == CPRAction.compression ? gameManager.TargetCompressionCount.ToString() : gameManager.TargetBreathCount.ToString();
-            TotalContainer.SetActive (IsSamePhase());
+            TotalContainer.SetActive(true);
+
+            // Change middleImage color based on the exact timing required by GameManagerUpdated.
+            // GameManagerUpdated has a TIMING_MARGIN of 0.15f before exactly hitting the expectedTime.
+            // Therefore, you are in the "correct" timing range if remaining time is 0.15 seconds or less.
+            bool isCorrectRange = gameManager.remainingTime <= 0.15f;
+
+            if (middleImage != null)
+            {
+                middleImage.color = isCorrectRange ? correctColor : incorrectColor;
+            }
         }
     }
     private void HandlePhaseChanged(GamePhase newPhase)

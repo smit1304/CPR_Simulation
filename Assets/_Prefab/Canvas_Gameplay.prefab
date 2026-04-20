@@ -832,6 +832,8 @@ GameObject:
   m_Component:
   - component: {fileID: 3091529437579254371}
   - component: {fileID: 3136753696329076822}
+  - component: {fileID: 2463538897336470221}
+  - component: {fileID: 5937566918141969270}
   m_Layer: 5
   m_Name: Completition
   m_TagString: Untagged
@@ -878,7 +880,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
-  m_Spacing: 0
+  m_Spacing: 40
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
@@ -886,6 +888,44 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!222 &2463538897336470221
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3434813712529545906}
+  m_CullTransparentMesh: 1
+--- !u!114 &5937566918141969270
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3434813712529545906}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.92156863}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &3960034722696183778
 GameObject:
   m_ObjectHideFlags: 0
@@ -1272,6 +1312,7 @@ MonoBehaviour:
   txtInstruction: {fileID: 377778498518603972}
   txtProgress: {fileID: 3290000627397399611}
   panelMistake: {fileID: 3960034722696183778}
+  txtMistakesCont: {fileID: 0}
   txtMistakeFeedback: {fileID: 8978564313741984600}
   mistakeFeedbackDuration: 1.5
   panelCompletion: {fileID: 3434813712529545906}
